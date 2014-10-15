@@ -44,6 +44,14 @@ servoleft()
   rs.write(RSF);
 }
 void
+servoright()
+{
+  ls.attach(LSP);
+  rs.attach(RSP);
+  rs.write(RSR);
+  ls.write(LSF);
+}
+void
 servoboust()
 {
   if(bos1){
@@ -66,14 +74,7 @@ servoboust()
   delay(BOUSTT_T);
   servostop();
 }
-void
-servoright()
-{
-  ls.attach(LSP);
-  rs.attach(RSP);
-  rs.write(RSR);
-  ls.write(LSF);
-}
+
 unsigned int
 getlight()
 {

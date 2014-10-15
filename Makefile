@@ -1,9 +1,9 @@
 # The name of your sketch (used to find TARGET.ino and to name the compiled .hex file)
-TARGET := mysketch
+TARGET := photodiode
 
 # Libraries
-USER_LIBRARIES := SdFat
-CORE_LIBRARIES :=  SPI Wire
+USER_LIBRARIES := Servo
+CORE_LIBRARIES :=  Servo 
 USER_LIB_HOME := ../libraries
 
 # Arduino IDE installation location
@@ -74,8 +74,8 @@ SIZE := $(abspath $(COMPILERPATH))/arm-none-eabi-size
 # automatically create lists of the sources and objects
 C_FILES := $(wildcard *.c) $(LIBRARY_C_FILES) $(wildcard $(TEENSY_HOME)/*.c)
 CPP_FILES := $(wildcard *.cpp) $(LIBRARY_CPP_FILES) $(wildcard $(TEENSY_HOME)/*.cpp)
-ABSOLUTE_OBJS := src.o $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
-OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(ABSOLUTE_OBJS)))
+ABSOLUTE_OBJS := $(TARGET).o $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
+OBJS :=  $(addprefix $(OBJ_DIR)/, $(notdir $(ABSOLUTE_OBJS)))
 OBJ_DEPS := $(OBJS:.o=.d)
 
 # the actual makefile rules (all .o files built by GNU make's default implicit rules)
