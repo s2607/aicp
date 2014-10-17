@@ -1,8 +1,8 @@
 # The name of your sketch (used to find TARGET.ino and to name the compiled .hex file)
-TARGET := photodiode
+TARGET := shell
 
 # Libraries
-USER_LIBRARIES := Servo
+USER_LIBRARIES := Servo Serial
 CORE_LIBRARIES :=  Servo 
 USER_LIB_HOME := ../libraries
 
@@ -10,7 +10,7 @@ USER_LIB_HOME := ../libraries
 ARDUINO_HOME := /Applications/Arduino.app/Contents/Resources/Java
 
 # Configurable options
-OPTIONS = -DF_CPU=48000000 -DUSB_RAWHID -DLAYOUT_US_ENGLISH
+OPTIONS = -DF_CPU=48000000 -DUSB_SERIAL -DLAYOUT_US_ENGLISH
 
 # Options needed by many Arduino libraries to configure for Teensy 3.1
 OPTIONS += -D__MK20DX256__ -DARDUINO=105 -DTEENSYDUINO=118
@@ -60,7 +60,7 @@ CXXFLAGS := -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
 CFLAGS :=
 
 # linker options
-LDFLAGS := -Os -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T$(TEENSY_HOME)/mk20dx256.ld
+LDFLAGS := -Os -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T./mk20dx256.ld
 
 # additional libraries to link
 LIBS := -lm -larm_cortexM4l_math
