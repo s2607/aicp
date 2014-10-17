@@ -10,6 +10,7 @@ void setup() {
 	pinMode(ledPin, OUTPUT);
 	digitalWrite(ledPin, HIGH);
 	Serial.begin(9600);
+ 	Serial.setTimeout(1000*100000);
 	Serial.print("user mem begins at ");
 	Serial.println((unsigned int)&_umem,HEX);
 
