@@ -31,8 +31,8 @@
 MEMORY
 {
 	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 256K
-	RAM  (rwx) : ORIGIN = 0x1FFF8000, LENGTH = 16K
-	URAM  (rwx) : ORIGIN =0x202E8000, LENGTH = 48K
+	RAM  (rwx) : ORIGIN = 0x1FFF8000, LENGTH = 64K
+/*	URAM  (rwx) : ORIGIN =0x202E8000, LENGTH = 48K*/
 }
 
 
@@ -116,7 +116,11 @@ SECTIONS
 		. = ALIGN(4);
 		*(.usbbuffers*)
 	} > RAM
-
+	.umem : {
+		. = ALIGN(4);
+		_umem = .;
+		. = . + 48k;	
+	} > RAM
 	.data : AT (_etext) {
 		. = ALIGN(4);
 		_sdata = .; 
@@ -142,10 +146,7 @@ SECTIONS
 
 	_estack = ORIGIN(RAM) + LENGTH(RAM);
 
-	.umem : {
-		. = ALIGN(4);
-		_umem = .;
-	} > URAM
+
 }
 
 
