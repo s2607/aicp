@@ -48,9 +48,12 @@ void read(void)
 {
 	char *c=&buf[1];
 	unsigned int l=(unsigned int)strtol(c,&c,16);
-	char *m=(char *)l;
-	Serial.println((unsigned int)m, HEX);
-	Serial.println((unsigned int)*m, HEX);
+	unsigned int le=(unsigned int)strtol(c,&c,16);
+
+	Serial.println((unsigned int)(char *)l, HEX);
+	for(;le>0;le--)
+		Serial.print((unsigned int)*((char *)(l++)),HEX);
+	Serial.println("--");
 
 }
 void ex()
@@ -71,20 +74,21 @@ int hni(int l, char **i,char *c)
 		*c=(*c)+(a<='9'?a-'0':a-'A');
 	}
 	*i=(*i)+t;
-	n[t+1]=0;
+	n[t]=0;
 	return strtol(n,NULL,16);
 }
 int hwrite(int bytes, unsigned int lad, char **i,char *c)
 {
-	if((lad< (unsigned int)&_umem) || lad>(unsigned int)&_umem+umeml)
+	unsigned int l=lad+chexad;
+	if((l< (unsigned int)&_umem) || l>(unsigned int)&_umem+umeml)
 	{
 		Serial.println("no");
 		return -1;
 	}
 	for(int j=0;j<=bytes;j++)
 	{
-		*(char *)(chexad+lad+j)=(char)hni(2,i,c);
-		Serial.print(*(char *)(chexad+lad+j));
+		*(char *)(l+j)=(char)hni(2,i,c);
+		Serial.print(*(char *)(l+j),HEX);
 	}
 	return 0;
 }
