@@ -59,9 +59,15 @@ void read(void)
 void ex()
 {
 	char *c=&buf[1];
+	char ret=0;
 	//unsigned int l=(unsigned int)strtol(c,&c,16);
 	void (*m)(char*);
 	m=(void (*)(char*))(void*)ev;
+	Serial.print("Jumping to:");
+	Serial.println((unsigned int)m,HEX);
+	(*m)(&ret);
+	Serial.print("Control returned succsesfully return value: ");
+	Serial.println((unsigned int)ret,HEX);
 	
 	
 }
