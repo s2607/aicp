@@ -108,7 +108,7 @@ void hex()
 	Serial.println(rtype,HEX);
 	switch(rtype){
 		case 0: hwrite(bytes,lad,&i,&c); break;
-		case 1: Serial.println("Done");cr=0;
+		case 1: Serial.println("Done");cr=0; break;
 		case 4:
 			Serial.print("new block: ");
 			chexad=hni(4,&i,&c);
@@ -117,6 +117,7 @@ void hex()
 			break;
 		case 5: Serial.print("exec vector: ");
 			ev=hni(8,&i,&c);
+			Serial.println(ev,HEX);
 			break;
 		default: Serial.println("Oops");break;
 	}
