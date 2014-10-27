@@ -1,16 +1,17 @@
 #define MAX_SYMS 255
 #define SCR_SIZE 32
+
 const int ledPin = 13;
 extern char _umem ;
 char buf[300];
 char scratch[SCR_SIZE];
+
 unsigned int umeml=48000;
 unsigned int chexad=0x0;
 unsigned int ev;
-int cr=0;
-void *syms[MAX_SYMS];
+
+int (*syms[MAX_SYMS])(char*);
 int cursym=0;
-// the setup() method runs once, when the sketch starts
 int out(char *a)
 {
 	Serial1.print(a);
@@ -18,19 +19,83 @@ int out(char *a)
 }
 int motor(char *a)
 {
-	Serial2.print(a);
+		int d,s;
+	if(*(a)!=5)
+	{
+		d= *(a)>5 ? 1 :0;
+		s= *(a) +(d ? 0 : 5);
+		Serial3.print(d ?"1f":"1r");
+		Serial3.print(s);
+		Serial3.print("\r");
+	}
+	else
+		Serial3.print("1f0\r");
+	delay(10);
+
+/*	while(Serial3.available())
+	{
+		Serial3.readBytesUntil('\r', scratch, SCR_SIZE);
+		out(&scratch[0]);
+	}*/
+	out("motor 2\n");
+	if(*(a+1)!=5)
+	{
+		d= *(a+1)>6 ? 1 :0;
+		s= *(a+1) +(d ? 0 : 5);
+		Serial3.print(d ?"2f":"2r");
+		Serial3.print(s);
+		Serial3.print("\r");
+	}
+	else
+		Serial3.print("2f0\r");
+		delay(10);
+	while(Serial3.available())
+	{
+		Serial3.readBytesUntil('\r', scratch, SCR_SIZE);
+		out(&scratch[0]);
+	}
+	for(int i=*(a+2);i>0;i--)
+		delay(10);
+	while(Serial3.available())
+	{
+		Serial3.readBytesUntil('\r', scratch, SCR_SIZE);
+		out(&scratch[0]);
+	}
+
 	return 0;
 }
+void mmotor(void)
+{
+	char *c=&buf[1];
+	char o[9];
+	char a[]={(char)strtol(c,&c,16),(char)strtol(c,&c,16),(char)strtol(c,&c,16)};
+	out(itoa(a[0],o,16));
+	out(itoa(a[1],o,16));
+	out(itoa(a[2],o,16));
+	motor(&a[0]);
+	a[0]=5;
+	a[1]=5;
+	a[2]=0;
+	motor(&a[0]);
+	motor(&a[0]);
+	motor(&a[0]);
+	motor(&a[0]); //SAFTY FIRST !!!!! :D:D:D:D
+
+}
+
 int adsym( void **a)
 {
 	char o[9];
-	if(cr>MAX_SYMS)
+	if(cursym>MAX_SYMS)
 		return -1;
 	out("sym added ");
-	out(itoa(cr,o,16));
+	out(itoa(cursym,o,16));
 	out((char *)*(a));
-	syms[cr]=(*(a++));
-	return cr;
+	syms[cursym]=((int (*)(char*))*(a+1));
+	out(itoa((unsigned int)syms[cursym],o,16));
+	out("\n");
+	cursym=cursym+1;
+	return cursym-1;
 }
 int madsym(char *name, void *ptr)
 {
@@ -45,17 +110,21 @@ void defaultsyms(void)
 	madsym("motor",(void *)motor);
 	
 }
-void setup() {
+void init()
+{
+	int cursym=0;
 	// initialize the digital pin as an output.
 	pinMode(ledPin, OUTPUT);
 	digitalWrite(ledPin, HIGH);
 	Serial1.begin(9600);
-	Serial2.begin(115200);
+	Serial3.begin(115200);
  	Serial1.setTimeout(1000*100000);
 	defaultsyms();
 	Serial1.print("user mem begins at ");
 	Serial1.println((unsigned int)&_umem,HEX);
-
+}
+void setup() {
+init();
 }
 void write(void)
 {
@@ -81,8 +150,7 @@ void write(void)
 }
 void ver(void)
 {
-	Serial1.print("user mem begins at ");
-	Serial1.println((unsigned int)&_umem,HEX);
+	init();
 }
 void read(void)
 {
@@ -147,6 +215,7 @@ void hex()
 	int bytes=hni(2,&i,&c);
 	unsigned int lad=hni(4,&i,&c);
 	int rtype=hni(2,&i,&c);
+	static int cr=0;
 	
 	Serial1.println("got");
 	Serial1.println(bytes,HEX);
@@ -180,7 +249,9 @@ void esyms(void)
 	char *c=&buf[1];
 	int ret=0;
 	int (*m)(char*);
-	m=(int (*)(char*)) syms[strtol(c,&c,16)];
+	int s =(int)strtol(c,&c,16);
+	Serial1.print((unsigned int)s,HEX);
+	m=(int (*)(char*)) syms[s];
 	Serial1.print("Jumping to:");
 	Serial1.println((unsigned int)m,HEX);
 	ret = (*m)(c);
@@ -198,6 +269,7 @@ void loop() {
 		case 'r': read();break;
 		case 'i': ex();break;
 		case 'e': esyms();break;
+		case 'm': mmotor();break;
 		case ':': hex();break;
 		default: Serial1.println("?");
 	}
