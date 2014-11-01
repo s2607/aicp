@@ -1,7 +1,8 @@
 extern char *_estuff;
-void   __attribute__ ((used)) start (char *a)
+void   __attribute__ ((used)) start (int (*entry)(int, char *))
 {
-	*a=42;
+	(*entry)(1,"hello world from userspace\n");
+	
 	*(&_estuff) =0x10;//because gcc linker keeps ignoring the used attribute
 }
 

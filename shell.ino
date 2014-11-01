@@ -84,9 +84,6 @@ void mmotor(void)
 	a[2]=0;
 	motor(&a[0]);
 	out("off");
-//	motor(&a[0]);
-//	motor(&a[0]);
-//	motor(&a[0]); //SAFTY FIRST !!!!! :D:D:D:D
 
 }
 
@@ -104,6 +101,17 @@ int adsym( void **a)
 	cursym=cursym+1;
 	return cursym-1;
 }
+int aread(char *a)
+{
+	return analogRead((int)*a);
+}
+void maread(void)
+{
+	char o[9];
+	char *c=&buf[1];
+	char a=strtol(c,&c,16);
+	out(itoa(aread(&a),o,16));
+}
 int madsym(char *name, void *ptr)
 {
 	void *s []= {name,ptr};
@@ -115,6 +123,7 @@ void defaultsyms(void)
 	madsym("adsym",(void *)adsym);
 	madsym("out",(void *)out);
 	madsym("motor",(void *)motor);
+	madsym("aread",(void *)aread);
 	
 }
 void init()
@@ -171,16 +180,21 @@ void read(void)
 	Serial1.println("--");
 
 }
+int entry(int s, char *a)
+{
+	return (*syms[s])(a);	
+
+}
 void ex()
 {
 	char *c=&buf[1];
 	char ret=0;
 	//unsigned int l=(unsigned int)strtol(c,&c,16);
-	void (*m)(char*);
-	m=(void (*)(char*))(void*)ev;
+	void (*m)(int (*)(int, char *));
+	m=(void (*)(int (*)(int, char *)))(void*)ev;
 	Serial1.print("Jumping to:");
 	Serial1.println((unsigned int)m,HEX);
-	(*m)(&ret);
+	(*m)(entry);
 	Serial1.print("Control returned succsesfully return value: ");
 	Serial1.println((unsigned int)ret,HEX);
 	
@@ -255,13 +269,22 @@ void esyms(void)
 {
 	char *c=&buf[1];
 	int ret=0;
+	int l;
 	int (*m)(char*);
 	int s =(int)strtol(c,&c,16);
 	Serial1.print((unsigned int)s,HEX);
+	c++;
+	l=strlen(c);
+	char a[l];
+	hni((l/2)-1,&c,&a[0]);
 	m=(int (*)(char*)) syms[s];
 	Serial1.print("Jumping to:");
 	Serial1.println((unsigned int)m,HEX);
-	ret = (*m)(c);
+	Serial1.print("ARGS");
+	for(int i=0;i<=l/2;i++)
+		Serial1.print((unsigned int)a[i],HEX);
+	Serial1.println(" .");
+	ret = (*m)(&a[0]);
 	Serial1.print("Control returned succsesfully return value: ");
 	Serial1.println((unsigned int)ret,HEX);
 
@@ -277,6 +300,7 @@ void loop() {
 		case 'i': ex();break;
 		case 'e': esyms();break;
 		case 'm': mmotor();break;
+		case 'a': maread();break;
 		case ':': hex();break;
 		default: Serial1.println("?");
 	}
