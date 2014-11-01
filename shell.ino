@@ -19,7 +19,8 @@ int out(char *a)
 }
 int motor(char *a)
 {
-		int d,s;
+	char o[9];
+	int d,s;
 	if(*(a)!=5)
 	{
 		d= *(a)>5 ? 1 :0;
@@ -30,7 +31,7 @@ int motor(char *a)
 	}
 	else
 		Serial3.print("1f0\r");
-	delay(10);
+	delay(30);
 
 /*	while(Serial3.available())
 	{
@@ -40,7 +41,7 @@ int motor(char *a)
 	out("motor 2\n");
 	if(*(a+1)!=5)
 	{
-		d= *(a+1)>6 ? 1 :0;
+		d= *(a+1)>5 ? 1 :0;
 		s= *(a+1) +(d ? 0 : 5);
 		Serial3.print(d ?"2f":"2r");
 		Serial3.print(s);
@@ -49,18 +50,22 @@ int motor(char *a)
 	else
 		Serial3.print("2f0\r");
 		delay(10);
-	while(Serial3.available())
+	/*while(Serial3.available())
 	{
 		Serial3.readBytesUntil('\r', scratch, SCR_SIZE);
 		out(&scratch[0]);
-	}
+	}*/
 	for(int i=*(a+2);i>0;i--)
-		delay(10);
-	while(Serial3.available())
+	{
+		out(itoa(i,o,16));	
+		delay(100);
+	}
+	out("tc\n");
+	/*while(Serial3.available())
 	{
 		Serial3.readBytesUntil('\r', scratch, SCR_SIZE);
 		out(&scratch[0]);
-	}
+	}*/
 
 	return 0;
 }
@@ -73,13 +78,15 @@ void mmotor(void)
 	out(itoa(a[1],o,16));
 	out(itoa(a[2],o,16));
 	motor(&a[0]);
+	out("retmmotor");
 	a[0]=5;
 	a[1]=5;
 	a[2]=0;
 	motor(&a[0]);
-	motor(&a[0]);
-	motor(&a[0]);
-	motor(&a[0]); //SAFTY FIRST !!!!! :D:D:D:D
+	out("off");
+//	motor(&a[0]);
+//	motor(&a[0]);
+//	motor(&a[0]); //SAFTY FIRST !!!!! :D:D:D:D
 
 }
 
