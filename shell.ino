@@ -8,14 +8,21 @@ char scratch[SCR_SIZE];
 
 unsigned int umeml=48000;
 unsigned int chexad=0x0;
-unsigned int ev;
-
+unsigned int ev=0;
+int run=0;
 int (*syms[MAX_SYMS])(char*);
 int cursym=0;
 int out(char *a)
 {
 	Serial1.print(a);
 	return 0;
+}
+int outn(char *a)
+{
+	char o[9];
+	out(itoa(*((int *)a),o,16));
+	out("\n");
+
 }
 int motor(char *a)
 {
@@ -124,6 +131,7 @@ void defaultsyms(void)
 	madsym("out",(void *)out);
 	madsym("motor",(void *)motor);
 	madsym("aread",(void *)aread);
+	madsym("nout",(void *)outn);
 	
 }
 void init()
@@ -197,8 +205,12 @@ void ex()
 	(*m)(entry);
 	Serial1.print("Control returned succsesfully return value: ");
 	Serial1.println((unsigned int)ret,HEX);
+	run=1;
 	
-	
+}
+void stop()
+{
+	run=0;
 }
 int hni(int l, char **i,char *c)
 {
@@ -291,18 +303,25 @@ void esyms(void)
 
 }
 void loop() {
-	Serial1.print("@");
-	Serial1.readBytesUntil('\n', buf, 162);
-	switch(buf[0]){
-		case 'w': write();break;
-		case 'v': ver();break;
-		case 'r': read();break;
-		case 'i': ex();break;
-		case 'e': esyms();break;
-		case 'm': mmotor();break;
-		case 'a': maread();break;
-		case ':': hex();break;
-		default: Serial1.println("?");
+	if(Serial1.available())
+	{
+		Serial1.print("@");
+		Serial1.readBytesUntil('\n', buf, 162);
+		switch(buf[0]){
+			case 'w': write();break;
+			case 'v': ver();break;
+			case 'r': read();break;
+			case 'i': ex();break;
+			case 'e': esyms();break;
+			case 'm': mmotor();break;
+			case 'a': maread();break;
+			case 's': stop();break;
+			case ':': hex();break;
+			default: Serial1.println("?");
+		}
 	}
+	if(ev && run)
+		ex();
+	delay(500);
 }
 
