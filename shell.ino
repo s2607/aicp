@@ -1,5 +1,10 @@
 #define MAX_SYMS 255
 #define SCR_SIZE 32
+#define RES  2
+// change HARDWARE AVG to 1, 2, 4, 8, 16, 32
+#define AVG  0
+#define S_C 1
+#include <Servo.h>
 
 const int ledPin = 13;
 extern char _umem ;
@@ -12,6 +17,56 @@ unsigned int ev=0;
 int run=0;
 int (*syms[MAX_SYMS])(char*);
 int cursym=0;
+int busywait(int);
+void stop(void);
+Servo servos[S_C];
+int spos[S_C];
+
+//extern void snap(void);
+int buyswait(int a)
+{
+	for(int i=0;i<a/10;i++)
+	{
+		delay(15);
+		servos[0].write(spos[0]);
+	}
+	return 0;
+}
+void nsnap(int *a)
+{
+	int tl=140; //slightly more then twice scan line length
+	int l=40;
+//	int b[l];
+	int i=0;
+//	Serial.begin(115200);
+	analogReadResolution(RES);
+	analogReadAveraging(AVG);
+	analogReference(0);
+   ADC0_CFG1 =  ADC_CFG1_ADIV(1) //
+        | ADC_CFG1_MODE(2)  // 16 bit.
+        | ADC_CFG1_ADICLK(0);  // bus clock
+    ADC0_CFG2 = ADC_CFG2_MUXSEL; // select the "b" channels.
+    ADC0_SC2 = ADC_SC2_REFSEL(0); // select the internal reference
+    ADC0_SC3 =  0 ; // no averaging
+
+ADC0_SC3 |= ADC_SC3_CAL; // begin cal
+
+    while (ADC0_SC3 & ADC_SC3_CAL) {
+    }
+    // Record the calibration.  This is all taken directly from Pauls' analog.c
+    uint16_t sum = ADC0_CLPS + ADC0_CLP4 + ADC0_CLP3 + ADC0_CLP2 + ADC0_CLP1 + ADC0_CLP0;
+    sum = (sum / 2) | 0x8000;
+    ADC0_PG = sum;
+    sum = ADC0_CLMS + ADC0_CLM4 + ADC0_CLM3 + ADC0_CLM2 + ADC0_CLM1 + ADC0_CLM0;
+    sum = (sum / 2) | 0x8000;
+    ADC0_MG = sum;
+	int st=micros();
+	for(i=0;i<l;i++)
+		*(a+i)=analogRead(0);
+;
+	Serial1.println(micros()-st);
+	Serial1.println(i);
+}
 int out(char *a)
 {
 	Serial1.print(a);
@@ -76,6 +131,40 @@ int motor(char *a)
 
 	return 0;
 }
+int iservo(char *a)
+{
+	servos[*a].attach(3);
+	return 0;	
+
+}
+int dservo(char *a)
+{
+	servos[(int)*a].detach();
+}
+int setservo (char *a)
+{
+	for(int i=0; i<10000; i++)
+	spos[(int)*a]=*(a+1);
+	return 0;
+}
+void msetservo (void)
+{
+	char *c=&buf[1];
+	char o[9];
+//	char a[]={(char)strtol(c,&c,16),(char)strtol(c,&c,16)};
+//	out(itoa(a[0],o,16));
+//	out(itoa(a[1],o,16));
+
+//	setservo(&a[0]);
+	spos[strtol(c,&c,16)]=strtol(c,&c,16);
+/*	for(int i=0; i<1000; i++)
+	{
+		delay(10);
+		servos[0].write(spos[0]);
+	}*/
+
+	out("set");
+}
 void mmotor(void)
 {
 	char *c=&buf[1];
@@ -119,11 +208,19 @@ void maread(void)
 	char a=strtol(c,&c,16);
 	out(itoa(aread(&a),o,16));
 }
+int ustop(char *a)
+{
+	stop();
+}
+int udelay(char *a)
+{
+	return busywait(*((int *)a));
+}
+
 int madsym(char *name, void *ptr)
 {
 	void *s []= {name,ptr};
 	return adsym(&s[0]);
-
 }
 void defaultsyms(void)
 {
@@ -137,18 +234,18 @@ void defaultsyms(void)
 void init()
 {
 	int cursym=0;
-	// initialize the digital pin as an output.
 	pinMode(ledPin, OUTPUT);
 	digitalWrite(ledPin, HIGH);
 	Serial1.begin(9600);
 	Serial3.begin(115200);
  	Serial1.setTimeout(1000*100000);
 	defaultsyms();
+	iservo(0);
 	Serial1.print("user mem begins at ");
 	Serial1.println((unsigned int)&_umem,HEX);
 }
 void setup() {
-init();
+	init();
 }
 void write(void)
 {
@@ -303,6 +400,7 @@ void esyms(void)
 
 }
 void loop() {
+	int ibuf[200];
 	if(Serial1.available())
 	{
 		Serial1.print("@");
@@ -316,12 +414,14 @@ void loop() {
 			case 'm': mmotor();break;
 			case 'a': maread();break;
 			case 's': stop();break;
+			case 'c': nsnap(&ibuf[0]);break;
+			case 'o': msetservo();break;
 			case ':': hex();break;
 			default: Serial1.println("?");
 		}
 	}
 	if(ev && run)
 		ex();
-	delay(500);
+	 buyswait(500);
 }
 
