@@ -7,7 +7,7 @@ CORE_LIBRARIES :=  Servo
 USER_LIB_HOME := ../libraries
 
 # Arduino IDE installation location
-ARDUINO_HOME := /Applications/Arduino.app/Contents/Resources/Java
+ARDUINO_HOME := /usr/arduino/
 
 # Configurable options
 OPTIONS = -DF_CPU=48000000 -DUSB_SERIAL -DLAYOUT_US_ENGLISH
