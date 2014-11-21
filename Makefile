@@ -2,7 +2,7 @@
 TARGET := shell
 
 # Libraries
-USER_LIBRARIES := Servo Serial
+USER_LIBRARIES := Servo Serial Spi
 CORE_LIBRARIES :=  Servo 
 USER_LIB_HOME := ../libraries
 
@@ -51,7 +51,8 @@ VPATH := . $(LIBRARY_PATHS) $(TEENSY_HOME)
 #************************************************************************
 
 # CPPFLAGS = compiler options for C and C++
-CPPFLAGS := -Wall -g -Os -mcpu=cortex-m4 -mthumb -nostdlib -MMD -fdata-sections -ffunction-sections $(OPTIONS) -I. -I$(TEENSY_HOME) $(LIBRARY_INCLUDES)
+#CPPFLAGS := -Wall -g -Os -mcpu=cortex-m4 -mthumb -nostdlib -MMD -fdata-sections -ffunction-sections $(OPTIONS) -I. -I$(TEENSY_HOME) $(LIBRARY_INCLUDES)
+CPPFLAGS := -Wall -g -Os -mcpu=cortex-m4 -mthumb -nostdlib -MMD $(OPTIONS) -I. -I$(TEENSY_HOME) $(LIBRARY_INCLUDES)
 
 # compiler options for C++ only
 CXXFLAGS := -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
@@ -60,7 +61,8 @@ CXXFLAGS := -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
 CFLAGS :=
 
 # linker options
-LDFLAGS := -Os -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T./mk20dx256.ld
+#LDFLAGS := -Os -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T./mk20dx256.ld
+LDFLAGS := -Os  -mcpu=cortex-m4 -mthumb -T./mk20dx256.ld
 
 # additional libraries to link
 LIBS := -lm -larm_cortexM4l_math

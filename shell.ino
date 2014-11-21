@@ -23,7 +23,7 @@ Servo servos[S_C];
 int spos[S_C];
 
 //extern void snap(void);
-int buyswait(int a)
+int busywait(int a)
 {
 	for(int i=0;i<a/10;i++)
 	{
@@ -422,6 +422,6 @@ void loop() {
 	}
 	if(ev && run)
 		ex();
-	 buyswait(500);
+	 busywait(500);
 }
 
