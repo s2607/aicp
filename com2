@@ -1,0 +1,5 @@
+#!/bin/bash
+stty -f /dev/tty.HC-06-DevB 9600  cs8 cread clocal
+cat /dev/tty.HC-06-DevB &
+cat >/dev/tty.HC-06-DevB
+
