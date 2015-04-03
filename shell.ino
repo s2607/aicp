@@ -21,6 +21,7 @@ int busywait(int);
 void stop(void);
 Servo servos[S_C];
 int spos[S_C];
+Serial cons;
 
 //extern void snap(void);
 int busywait(int a)
@@ -64,12 +65,12 @@ ADC0_SC3 |= ADC_SC3_CAL; // begin cal
 	for(i=0;i<l;i++)
 		*(a+i)=analogRead(0);
 ;
-	Serial1.println(micros()-st);
-	Serial1.println(i);
+	cons.println(micros()-st);
+	cons.println(i);
 }
 int out(char *a)
 {
-	Serial1.print(a);
+	cons.print(a);
 	return 0;
 }
 int outn(char *a)
@@ -234,15 +235,16 @@ void defaultsyms(void)
 void init()
 {
 	int cursym=0;
+	cons = cons;
 	pinMode(ledPin, OUTPUT);
 	digitalWrite(ledPin, HIGH);
-	Serial1.begin(9600);
+	cons.begin(9600);
 	Serial3.begin(115200);
- 	Serial1.setTimeout(1000*100000);
+ 	cons.setTimeout(1000*100000);
 	defaultsyms();
 	iservo(0);
-	Serial1.print("user mem begins at ");
-	Serial1.println((unsigned int)&_umem,HEX);
+	cons.print("user mem begins at ");
+	cons.println((unsigned int)&_umem,HEX);
 }
 void setup() {
 	init();
@@ -253,18 +255,18 @@ void write(void)
 	unsigned int t;
 	unsigned int l=(unsigned int)strtol(c,&c,16);
 	char *m=(char *)l;
-	Serial1.println((unsigned int)m, HEX);
+	cons.println((unsigned int)m, HEX);
 	if((l< (unsigned int)&_umem) || l>(unsigned int)&_umem+umeml)
 	{
-		Serial1.println("no");
+		cons.println("no");
 		return;
 	}
 	while((*c!=0) && (*c!='\n'))
 	{
-		Serial1.print(" ");
+		cons.print(" ");
 		t=(unsigned int)strtol(c,&c,16);	
 		*m=t;
-		Serial1.println((unsigned char)*m,HEX);
+		cons.println((unsigned char)*m,HEX);
 		m++;
 	
 	}
@@ -279,10 +281,10 @@ void read(void)
 	unsigned int l=(unsigned int)strtol(c,&c,16);
 	unsigned int le=(unsigned int)strtol(c,&c,16);
 
-	Serial1.println((unsigned int)(char *)l, HEX);
+	cons.println((unsigned int)(char *)l, HEX);
 	for(;le>0;le--)
-		Serial1.print((unsigned int)*((char *)(l++)),HEX);
-	Serial1.println("--");
+		cons.print((unsigned int)*((char *)(l++)),HEX);
+	cons.println("--");
 
 }
 int entry(int s, char *a)
@@ -297,11 +299,11 @@ void ex()
 	//unsigned int l=(unsigned int)strtol(c,&c,16);
 	void (*m)(int (*)(int, char *));
 	m=(void (*)(int (*)(int, char *)))(void*)ev;
-	Serial1.print("Jumping to:");
-	Serial1.println((unsigned int)m,HEX);
+	cons.print("Jumping to:");
+	cons.println((unsigned int)m,HEX);
 	(*m)(entry);
-	Serial1.print("Control returned succsesfully return value: ");
-	Serial1.println((unsigned int)ret,HEX);
+	cons.print("Control returned succsesfully return value: ");
+	cons.println((unsigned int)ret,HEX);
 	run=1;
 	
 }
@@ -326,13 +328,13 @@ int hwrite(int bytes, unsigned int lad, char **i,char *c)
 	unsigned int l=lad+chexad;
 	if((l< (unsigned int)&_umem) || l>(unsigned int)&_umem+umeml)
 	{
-		Serial1.println("no");
+		cons.println("no");
 		return -1;
 	}
 	for(int j=0;j<=bytes;j++)
 	{
 		*(char *)(l+j)=(char)hni(2,i,c);
-		Serial1.print(*(char *)(l+j),HEX);
+		cons.print(*(char *)(l+j),HEX);
 	}
 	return 0;
 }
@@ -347,32 +349,32 @@ void hex()
 	int rtype=hni(2,&i,&c);
 	static int cr=0;
 	
-	Serial1.println("got");
-	Serial1.println(bytes,HEX);
-	Serial1.println(lad,HEX);
-	Serial1.println(rtype,HEX);
+	cons.println("got");
+	cons.println(bytes,HEX);
+	cons.println(lad,HEX);
+	cons.println(rtype,HEX);
 	switch(rtype){
 		case 0: hwrite(bytes,lad,&i,&c); break;
-		case 1: Serial1.println("Done");cr=0; break;
+		case 1: cons.println("Done");cr=0; break;
 		case 4:
-			Serial1.print("new block: ");
+			cons.print("new block: ");
 			chexad=hni(4,&i,&c);
 			chexad=chexad<<16;
-			Serial1.println(chexad,HEX);
+			cons.println(chexad,HEX);
 			break;
-		case 5: Serial1.print("exec vector: ");
+		case 5: cons.print("exec vector: ");
 			ev=hni(8,&i,&c);
-			Serial1.println(ev,HEX);
+			cons.println(ev,HEX);
 			break;
-		default: Serial1.println("Oops");break;
+		default: cons.println("Oops");break;
 	}
 	hni(2,&i,&c);
-	Serial1.print("HEX:");
+	cons.print("HEX:");
 	if(c)
-		Serial1.print(" NUUH: ");
+		cons.print(" NUUH: ");
 	else
-		Serial1.print(" YEEE: ");
-	Serial1.println(cr++,HEX);
+		cons.print(" YEEE: ");
+	cons.println(cr++,HEX);
 }
 void esyms(void)
 {
@@ -381,30 +383,30 @@ void esyms(void)
 	int l;
 	int (*m)(char*);
 	int s =(int)strtol(c,&c,16);
-	Serial1.print((unsigned int)s,HEX);
+	cons.print((unsigned int)s,HEX);
 	c++;
 	l=strlen(c);
 	char a[l];
 	hni((l/2)-1,&c,&a[0]);
 	m=(int (*)(char*)) syms[s];
-	Serial1.print("Jumping to:");
-	Serial1.println((unsigned int)m,HEX);
-	Serial1.print("ARGS");
+	cons.print("Jumping to:");
+	cons.println((unsigned int)m,HEX);
+	cons.print("ARGS");
 	for(int i=0;i<=l/2;i++)
-		Serial1.print((unsigned int)a[i],HEX);
-	Serial1.println(" .");
+		cons.print((unsigned int)a[i],HEX);
+	cons.println(" .");
 	ret = (*m)(&a[0]);
-	Serial1.print("Control returned succsesfully return value: ");
-	Serial1.println((unsigned int)ret,HEX);
+	cons.print("Control returned succsesfully return value: ");
+	cons.println((unsigned int)ret,HEX);
 
 
 }
 void loop() {
 	int ibuf[200];
-	if(Serial1.available())
+	if(cons.available())
 	{
-		Serial1.print("@");
-		Serial1.readBytesUntil('\n', buf, 162);
+		cons.print("@");
+		cons.readBytesUntil('\n', buf, 162);
 		switch(buf[0]){
 			case 'w': write();break;
 			case 'v': ver();break;
@@ -417,7 +419,7 @@ void loop() {
 			case 'c': nsnap(&ibuf[0]);break;
 			case 'o': msetservo();break;
 			case ':': hex();break;
-			default: Serial1.println("?");
+			default: cons.println("?");
 		}
 	}
 	if(ev && run)
